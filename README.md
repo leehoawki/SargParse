@@ -36,3 +36,7 @@ comp: pointer to function returning void
 x: function returning pointer to array[] of pointer to function returning char
 
 x: array[3] of pointer to function returning pointer to array[5] of char
+
+====
+Others
+====
