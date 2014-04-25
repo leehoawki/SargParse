@@ -1,9 +1,7 @@
 Pointer_teller
 ====
 
-Refer to <The C programming language> 
-
-Ch5.12 Complicated Declarations
+Refer to \<The C programming language> Ch5.12 Complicated Declarations
 
 Excample
 
