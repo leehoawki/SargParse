@@ -35,6 +35,18 @@ x: function returning pointer to array[] of pointer to function returning char
 
 x: array[3] of pointer to function returning pointer to array[5] of char
 
+Matrix
+====
+
+Refer to the answer of Sumit Sahrawat, Knuth on Quora.
+
+http://www.quora.com/What-is-the-best-C++-code-that-you-have-ever-written
+
+This piece of code will create images like the movie matrix on screen...
+
+Remeber to change your color of text to green .
+
+
 ====
 Others
 ====
