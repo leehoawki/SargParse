@@ -3,7 +3,7 @@ import time
 
 width = 80
 flips = 5
-sleep = 50
+sleep = 0.05 # seconds
 
 if __name__ == '__main__':
         switches = [True] * width
@@ -21,4 +21,4 @@ if __name__ == '__main__':
                 for i in range(0,flips):
                         x = random.randint(0,width-1)
                         switches[x] = not switches[x]
-                time.sleep(0.05)
+                time.sleep(sleep)
