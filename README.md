@@ -48,5 +48,57 @@ Remeber to change your color of text to green .
 
 
 ====
-Others
+Pythonpy
 ====
+
+Refer to https://github.com/Russell91/pythonpy
+
+using his testcases and implement mine for fun.
+
+py 'expression' ? python -c 'print(expression)'
+-----------------------------------------------
+
+Float Arithmetic
+~~~~~~~~~~~~~~~~
+
+::
+
+  $ py '3 * 1.5' 
+  4.5
+
+::
+
+Access imports directly
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+  $ py 'math.exp(1)'
+  2.71828182846
+
+  $ py 'random.random()'
+  0.103173957713
+  
+  $ py 'datetime.datetime.now?'
+  Help on built-in function now:
+
+  now(...)
+        [tz] -> new datetime with tz's local day and time.
+
+
+::
+
+Lists are printed row by row
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+  $ py 'range(3)'
+  0
+  1
+  2
+
+  $ py '[range(3)]'
+  [0, 1, 2]
+
+::
