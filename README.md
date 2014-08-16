@@ -62,6 +62,7 @@ Float Arithmetic
 ~~~~~~~~~~~~~~~~
 $ py '3 * 1.5' 
 4.5
+~~~~~~~~~~~~~~~~
 
 Access imports directly
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -70,6 +71,7 @@ $ py 'math.exp(1)'
 
 $ py 'random.random()'
 0.103173957713
+~~~~~~~~~~~~~~~~
   
 Lists are printed row by row
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -80,4 +82,5 @@ $ py 'range(3)'
 
 $ py '[range(3)]'
 [0, 1, 2]
+~~~~~~~~~~~~~~~~
 
