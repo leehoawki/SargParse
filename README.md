@@ -60,45 +60,24 @@ py 'expression' ? python -c 'print(expression)'
 
 Float Arithmetic
 ~~~~~~~~~~~~~~~~
-
-::
-
-  $ py '3 * 1.5' 
-  4.5
-
-::
+$ py '3 * 1.5' 
+4.5
 
 Access imports directly
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ py 'math.exp(1)'
+2.71828182846
 
-::
-
-  $ py 'math.exp(1)'
-  2.71828182846
-
-  $ py 'random.random()'
-  0.103173957713
+$ py 'random.random()'
+0.103173957713
   
-  $ py 'datetime.datetime.now?'
-  Help on built-in function now:
-
-  now(...)
-        [tz] -> new datetime with tz's local day and time.
-
-
-::
-
 Lists are printed row by row
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ py 'range(3)'
+0
+1
+2
 
-::
+$ py '[range(3)]'
+[0, 1, 2]
 
-  $ py 'range(3)'
-  0
-  1
-  2
-
-  $ py '[range(3)]'
-  [0, 1, 2]
-
-::
