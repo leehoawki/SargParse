@@ -2,9 +2,6 @@ import unittest
 from subprocess import check_output
 
 class TestPythonPy(unittest.TestCase):
-    def test_empty(self):
-        self.assertEqual(check_output(['py']),'')
-        
     def test_numbers(self):
         self.assertEqual(check_output(['py', '3 * 4.5']),'13.5\n')
 
@@ -12,7 +9,7 @@ class TestPythonPy(unittest.TestCase):
         self.assertEqual(check_output(['py', 'range(3)']), '\n'.join(map(str, range(3))) + '\n')
 
     def test_split_input(self):
-        self.assertEqual(check_output(["""echo a,b | py -x 'x.split(',')[1]' """], shell=True), 'b\n')
+        self.assertEqual(check_output(["""echo a,b | py -x 'x.split(",")[1]' """], shell=True), 'b\n')
 
     def test_filter(self):
         self.assertEqual(check_output("""py 'range(0,4)' | py -f 'int(x)==3'""", shell=True), '3\n')
@@ -34,8 +31,6 @@ class TestPythonPy(unittest.TestCase):
                            "shutil.get_archive_formats()",
                            "tempfile.gettempdir()",
                            "uuid.uuid1()",
-                           "math",
-                           "[math]",
                            ]
         for command in module_commands:
             check_output("py %r" % command, shell=True)
