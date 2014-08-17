@@ -53,10 +53,7 @@ Pythonpy
 
 Refer to https://github.com/Russell91/pythonpy
 
-using his testcases and implement mine for fun.
-
-py 'expression' ? python -c 'print(expression)'
------------------------------------------------
+using his testcases and then implement mine for fun.
 
 Float Arithmetic
 ~~~~~~~~~~~~~~~~
