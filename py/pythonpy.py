@@ -8,7 +8,7 @@ def myimport(exp):
 	for module_name in matches:
 		try:
 			module = __import__(module_name)
-           		globals()[module_name] = module
+			globals()[module_name] = module
 		except ImportError as e:
 			pass
 
@@ -39,6 +39,7 @@ def filter(stdin,exp):
 def reduce(stdin,exp):
 	myimport(exp)
 	count = 0
+	y=None
 	for line in stdin:
 		if count == 0:
 			y=stdinparse(line)
@@ -46,7 +47,8 @@ def reduce(stdin,exp):
 			x=stdinparse(line)
 			y=eval(exp)
 		count+=1
-	print y
+	if y:
+		print y
 
 def stdinparse(line):
 	if line[-1] == '\n':
