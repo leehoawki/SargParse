@@ -89,7 +89,7 @@ Filter and MapReduce
 $ py 'range(3)' | py -f 'int(x)==2'
 2
 
-$ py '[range(3)]' | py -x 'int(x) ** 2 ' | py -r 'int(x) + int(y)'
+$ py 'range(3)' | py -x 'int(x) ** 2 ' | py -r 'int(x) + int(y)'
 5
 ~~~~~~~~~~~~~~~~
 
