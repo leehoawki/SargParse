@@ -35,6 +35,9 @@ x: function returning pointer to array[] of pointer to function returning char
 
 x: array[3] of pointer to function returning pointer to array[5] of char
 
+
+
+====
 Matrix
 ====
 
@@ -79,5 +82,14 @@ $ py 'range(3)'
 
 $ py '[range(3)]'
 [0, 1, 2]
+~~~~~~~~~~~~~~~~
+
+Filter and MapReduce
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ py 'range(3)' | py -f 'int(x)==2'
+2
+
+$ py '[range(3)]' | py -x 'int(x) ** 2 ' | py -r 'int(x) + int(y)'
+5
 ~~~~~~~~~~~~~~~~
 
