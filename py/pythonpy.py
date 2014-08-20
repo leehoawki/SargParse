@@ -34,15 +34,13 @@ def filter(stdin,exp):
 
 def reduce(stdin,exp):
 	myimport(exp)
-	count = 0
 	y=None
 	for line in stdin:
-		if count == 0:
-			y=stdinparse(line)
-		else:
+		if y:
 			x=stdinparse(line)
 			y=eval(exp)
-		count+=1
+		else:
+			y=stdinparse(line)
 	if y:
 		print y
 
