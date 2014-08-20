@@ -3,21 +3,22 @@ Pointer_teller
 
 Refer to \<The C programming language> Ch5.12 Complicated Declarations
 
-Excample output:
+Excample 
+```js
+python pointer.py 'char **argv'          ## argv: pointer to pointer to char
 
-python pointer.py 'char **argv'                 ## argv: pointer to pointer to char
+python pointer.py 'int (*daytab)[13]'    ## daytab: pointer to array[13] of int
 
-python pointer.py 'int (*daytab)[13]'           ## daytab: pointer to array[13] of int
+python pointer.py 'int *daytab[13]'      ## daytab: array[13] of pointer to int
 
-python pointer.py 'int *daytab[13]'             ## daytab: array[13] of pointer to int
+python pointer.py 'void *comp()'         ## comp: function returning pointer to void
 
-python pointer.py 'void *comp()'                ## comp: function returning pointer to void
+python pointer.py 'void (*comp)()'       ## comp: pointer to function returning void
 
-python pointer.py 'void (*comp)()'              ## comp: pointer to function returning void
+python pointer.py 'char (*(*x())[])()'   ## x: function returning pointer to array[] of pointer to function returning char
 
-python pointer.py 'char (*(*x())[])()'          ## x: function returning pointer to array[] of pointer to function returning char
-
-python pointer.py 'char (*(*x[3])())[5]'        ## x: array[3] of pointer to function returning pointer to array[5] of char
+python pointer.py 'char (*(*x[3])())[5]' ## x: array[3] of pointer to function returning pointer to array[5] of char
+```
 
 ====
 Pythonpy
