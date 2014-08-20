@@ -52,9 +52,13 @@ def reduce(stdin,exp):
 
 def listp(stdin, exp):
 	myimport(exp)
-	x=map(stdinparse,list(stdin))
-	for line in eval(exp):
-		print line
+	x=map(stdinparse, list(stdin))
+	resp = eval(exp)
+	if isinstance(resp, list):
+		for o in resp:
+			print o
+	else:
+		print resp
 
 def stdinparse(line):
 	if line[-1] == '\n':
