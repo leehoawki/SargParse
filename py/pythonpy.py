@@ -34,19 +34,19 @@ def filter(stdin,exp):
 
 def reduce(stdin,exp):
 	myimport(exp)
-	y=None
+	y = None
 	for line in stdin:
 		if y:
-			x=stdinparse(line)
-			y=eval(exp)
+			x = stdinparse(line)
+			y = eval(exp)
 		else:
-			y=stdinparse(line)
+			y = stdinparse(line)
 	if y:
 		print y
 
 def listp(stdin, exp):
 	myimport(exp)
-	x=map(stdinparse, list(stdin))
+	x = map(stdinparse, list(stdin))
 	resp = eval(exp)
 	printresp(resp)
 
@@ -77,16 +77,16 @@ if __name__=='__main__':
 	arguments = parser.parse_args()
 	
 	if arguments.x:
-		apply(sys.stdin,arguments.exp)
+		apply(sys.stdin, arguments.exp)
 		exit(0)
 	if arguments.f:
-		filter(sys.stdin,arguments.exp)
+		filter(sys.stdin, arguments.exp)
 		exit(0)
 	if arguments.r:
-		reduce(sys.stdin,arguments.exp)
+		reduce(sys.stdin, arguments.exp)
 		exit(0)
 	if arguments.l:
-		listp(sys.stdin,arguments.exp)
+		listp(sys.stdin, arguments.exp)
 		exit(0)
 
 	evaluate(arguments.exp)
