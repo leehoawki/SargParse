@@ -15,11 +15,7 @@ def myimport(exp):
 def evaluate(exp):
 	myimport(exp)
 	resp = eval(exp)
-	if isinstance(resp,list):
-		for o in resp:
-			print o
-	else:
-		print resp
+	printresp(resp)
 
 def apply(stdin,exp):
 	myimport(exp)
@@ -54,6 +50,9 @@ def listp(stdin, exp):
 	myimport(exp)
 	x=map(stdinparse, list(stdin))
 	resp = eval(exp)
+	printresp(resp)
+
+def printresp(resp):
 	if isinstance(resp, list):
 		for o in resp:
 			print o
