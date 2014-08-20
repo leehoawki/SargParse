@@ -3,7 +3,6 @@ Pointer_teller
 
 Refer to \<The C programming language> Ch5.12 Complicated Declarations
 
-Excample 
 ```js
 python pointer.py 'char **argv'          ## argv: pointer to pointer to char
 
