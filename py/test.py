@@ -17,6 +17,9 @@ class TestPythonPy(unittest.TestCase):
     def test_reduce(self):
         self.assertEqual(check_output("""py 'range(0,4)' | py -r 'int(x)+int(y)'""", shell=True), '6\n')
 
+    def test_listp(self):
+        self.assertEqual(check_output("""py 'range(0,3)' | py -l 'x[::-1]'""", shell=True), '\n'.join(map(str, range(3)[::-1])) + '\n')
+        self.assertEqual(check_output("""py 'range(0,3)' | py -l 'x[1]'""", shell=True), '1\n')
 
     def test_imports(self):
         module_commands = ["math.ceil(2.5)",
