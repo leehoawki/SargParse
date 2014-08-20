@@ -50,6 +50,12 @@ def reduce(stdin,exp):
 	if y:
 		print y
 
+def listp(stdin, exp):
+	myimport(exp)
+	x=map(stdinparse,list(stdin))
+	for line in eval(exp):
+		print line
+
 def stdinparse(line):
 	if line[-1] == '\n':
 		return line[0:-1]
@@ -63,6 +69,7 @@ if __name__=='__main__':
 	group.add_argument('-x', action='store_true', help='execute lambda expression using stdin as x')
 	group.add_argument('-f', action='store_true', help='filter the stdin using a lambda expression')
 	group.add_argument('-r', action='store_true', help='reduce the stdin using expression of x and y')
+	group.add_argument('-l', action='store_true', help='apply the expression to the stdin as a list')
 	
 	parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 	parser.add_argument('exp', action="store")
@@ -76,6 +83,9 @@ if __name__=='__main__':
 		exit(0)
 	if arguments.r:
 		reduce(sys.stdin,arguments.exp)
+		exit(0)
+	if arguments.l:
+		listp(sys.stdin,arguments.exp)
 		exit(0)
 
 	evaluate(arguments.exp)
