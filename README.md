@@ -28,41 +28,30 @@ Refer to https://github.com/Russell91/pythonpy
 
 using his testcases and then implement mine for fun.
 
-Float Arithmetic
-~~~~~~~~~~~~~~~~
+* Basic examples
+
+```js
 $ py '3 * 1.5' 
-4.5
-~~~~~~~~~~~~~~~~
-
-Access imports directly
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $ py 'math.exp(1)'
-2.71828182846
-
 $ py 'random.random()'
-0.103173957713
-~~~~~~~~~~~~~~~~
-  
-Lists are printed row by row
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $ py 'range(3)'
-0
-1
-2
-
 $ py '[range(3)]'
-[0, 1, 2]
-~~~~~~~~~~~~~~~~
+```
 
-Filter and MapReduce
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* Advaned examples
+
+```js
+##filter
 $ py 'range(3)' | py -f 'int(x)==2'
 2
-
+##mapreduce
 $ py 'range(3)' | py -x 'int(x) ** 2 ' | py -r 'int(x) + int(y)'
 5
-~~~~~~~~~~~~~~~~
+##list process
+$ cat /etc/passwd | py -l 'x[::-1]' ## reverse the stdin
+$ cat /etc/passwd | py -l 'x[2:-1]' ## select the specific line of stdin
 
+```
 
 ====
 Matrix
