@@ -38,6 +38,9 @@ if __name__=='__main__':
     env['/'] = slib.div
     env['='] = slib.eq
     while True:
-        input = console.get()
-        output = eval(input,env)
-        console.put(output)
+        try:
+            input = console.get()
+            output = eval(input,env)
+            console.put(output)
+        except Exception,e:
+            console.put(e)
