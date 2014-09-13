@@ -11,23 +11,28 @@ def parse(tokens):
     t = tokens.pop(0)
     if t == '(':
         L = []
-        while tokens[0] != ')':
-            L.append(parse(tokens))
+        while True:
+            if len(tokens) == 0:
+                tokens.extend(tokenize(raw_input()))
+            elif tokens[0] != ')':
+                L.append(parse(tokens))
+            else:
+                break
         tokens.pop(0)
         return L
     else:
-        return atom(t)
+		return atom(t)
 
 def atom(token):
-    try :
-        return int(token)
-    except :
-        try :
-            return float(token)
-        except:
-            return token
+	try :
+		return int(token)
+	except :
+		try :
+			return float(token)
+		except:
+			return token
 
 def tokenize(exp):
-    return exp.replace(')',' ) ').replace('(',' ( ').split()
+	return exp.replace(')',' ) ').replace('(',' ( ').split()
 
 
