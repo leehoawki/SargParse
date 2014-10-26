@@ -40,7 +40,8 @@ if __name__=='__main__':
     while True:
         try:
             input = console.get()
-            output = eval(input,env)
-            console.put(output)
+                if input != None:
+                    output = eval(input,env)
+                    console.put(output)
         except Exception,e:
             console.put(e)
