@@ -78,15 +78,11 @@ if __name__=='__main__':
 	
 	if arguments.x:
 		apply(arguments.exp,sys.stdin)
-		exit(0)
-	if arguments.f:
+	elif arguments.f:
 		filter(arguments.exp,sys.stdin)
-		exit(0)
-	if arguments.r:
+	elif arguments.r:
 		reduce(arguments.exp,sys.stdin)
-		exit(0)
-	if arguments.l:
+	elif arguments.l:
 		listp(arguments.exp,sys.stdin)
-		exit(0)
-
-	evaluate(arguments.exp)
+	else:
+		evaluate(arguments.exp)
