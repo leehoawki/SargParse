@@ -92,12 +92,11 @@ class SargParser():
         self.addArgument("-h,--help", type="optional", action="help", message="show this help message and exit.")
 
     def parseArg(self, expression=sys.argv[1:]):
-        return self.arguments.parse(expression)
-        # try:
-        #     namespace = self.arguments.parse(expression)
-        #     return namespace
-        # except Exception, e:
-        #     self.error(e.message)
+        try:
+            namespace = self.arguments.parse(expression)
+            return namespace
+        except Exception, e:
+            self.error(e.message)
 
     def addArgument(self, name, type = "positional", action = "store", message = ""):
         action = actionMapping[action]
@@ -125,3 +124,10 @@ class SargParser():
 
     def printUsage(self):
         print "Usage: " + self.prog + " " + str(self.arguments)
+
+
+if __name__ == '__main__':
+    parser = SargParser()
+    parser.addArgument('-x', action="storeTrue", type = "optional" , message = "x factor")
+    parser.addArgument('exp', action="store", message='lambda expression.')
+    namespace = parser.parseArg()
