@@ -125,9 +125,3 @@ class SargParser():
     def printUsage(self):
         print "Usage: " + self.prog + " " + str(self.arguments)
 
-
-if __name__ == '__main__':
-    parser = SargParser()
-    parser.addArgument('-x', action="storeTrue", type = "optional" , message = "x factor")
-    parser.addArgument('exp', action="store", message='lambda expression.')
-    namespace = parser.parseArg()
