@@ -48,17 +48,14 @@ class Arguments():
     def addArgument(self, argument):
         self.arguments.append(argument)
 
-    def getOptionalArguments(self):
-        return [argument for argument in self.arguments if argument.type == "optional"]
-
-    def getPositionalArguments(self):
-        return [argument for argument in self.arguments if argument.type == "positional"]
+    def getArgumentsByType(self, type):
+        return [argument for argument in self.arguments if argument.type == type]
 
     def maxArgumentLength(self):
         return max(map(lambda x:len(x.name),self.arguments))
 
     def __str__(self):
-        return " ".join(map(lambda x : "[" + x.name + "]", self.getOptionalArguments())) + " " + " ".join(map(lambda x : x.name, self.getPositionalArguments()))
+        return " ".join(["[" + x.name + "]" for x in self.getArgumentsByType("optional")]) + " " + " ".join(["[" + x.name + "]" for x in self.getArgumentsByType("positional")])
 
     def parse(self, expression):
         def parseRest(positionalArguments, optionalArguments, expression, namespace):
@@ -66,17 +63,17 @@ class Arguments():
                 return namespace
             elif len(expression) == 0 and len(positionalArguments) > 0:
                 raise Exception("Not enough arguments.")
-            elif len(positionalArguments) == 0 and len(expression) > 0:
-                raise Exception("Too many arguments.")
             else:
                 for optionalArgument in optionalArguments:
                         if optionalArgument(expression[0], self.parser, namespace):
                             return parseRest(positionalArguments, [a for a in optionalArguments if a != optionalArgument], expression[1:], namespace)
-                if positionalArguments[0](expression[0], self.parser, namespace):
+                if len(positionalArguments) == 0:
+                    raise Exception("Too many arguments.")
+                elif positionalArguments[0](expression[0], self.parser, namespace):
                     return parseRest(positionalArguments[1:], optionalArguments, expression[1:], namespace)
                 else:
                     raise Exception("Illegal argument " + expression[0])
-        namespace = parseRest(self.getPositionalArguments(),self.getOptionalArguments(), expression, {})
+        namespace = parseRest(self.getArgumentsByType("positional"), self.getArgumentsByType("optional"), expression, {})
         return namespace
 
 actionMapping = {}
@@ -106,12 +103,13 @@ class SargParser():
         self.printUsage()
         l = self.arguments.maxArgumentLength()
         space = 4
+        print
         print "Optional:"
-        for oa in self.arguments.getOptionalArguments():
+        for oa in self.arguments.getArgumentsByType("optional"):
             print oa.name.ljust(l + space) + oa.message
         print
         print "Positional:"
-        for pa in self.arguments.getPositionalArguments():
+        for pa in self.arguments.getArgumentsByType("positional"):
             print pa.name.ljust(l + space) + pa.message
 
     def exit(self):
