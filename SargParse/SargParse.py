@@ -1,6 +1,7 @@
 import sys
 import os
 
+
 class Singleton(object):
     def __new__(cls, *args, **kw):
         if not hasattr(cls, '_instance'):
@@ -8,19 +9,24 @@ class Singleton(object):
             cls._instance = orig.__new__(cls, *args, **kw)
         return cls._instance
 
+
 class Action(Singleton):
     pass
 
+
 class _HelpAction(Action):
     def __call__(self, name, expression, parser, namespace):
-        if expression == '-h' or expression == '--help':
-            parser.printHelp()
-            parser.exit()
+        for n in name.split(','):
+            if n == expression:
+                parser.print_help()
+                parser.exit()
+
 
 class _StoreAction(Action):
     def __call__(self, name, expression, parser, namespace):
         namespace[name] = expression
         return True
+
 
 class _StoreTrueAction(Action):
     def __call__(self, name, expression, parser, namespace):
@@ -30,7 +36,8 @@ class _StoreTrueAction(Action):
                 return True
         return False
 
-class Argument():
+
+class Argument(object):
     def __init__(self, name, action, type, message):
         self.name = name
         self.action = action
@@ -40,86 +47,83 @@ class Argument():
     def __call__(self, expression, parser, namespace):
         return self.action(self.name, expression, parser, namespace)
 
-class Arguments():
-    def __init__(self, parser):
-        self.parser = parser
-        self.arguments = []
 
-    def addArgument(self, argument):
-        self.arguments.append(argument)
+class GroupArgument(Argument):
+    pass
 
-    def getArgumentsByType(self, type):
-        return [argument for argument in self.arguments if argument.type == type]
 
-    def maxArgumentLength(self):
-        return max(map(lambda x:len(x.name),self.arguments))
+ACTION_MAPPING = {'help': _HelpAction(),
+                  'store': _StoreAction(),
+                  'storeTrue': _StoreTrueAction()}
 
-    def __str__(self):
-        return " ".join(["[" + x.name + "]" for x in self.getArgumentsByType("optional")]) + " " + " ".join(["[" + x.name + "]" for x in self.getArgumentsByType("positional")])
 
-    def parse(self, expression):
-        def parseRest(positionalArguments, optionalArguments, expression, namespace):
-            if len(expression) == 0 and len(positionalArguments) == 0:
-                return namespace
-            elif len(expression) == 0 and len(positionalArguments) > 0:
-                raise Exception("Not enough arguments.")
-            else:
-                for optionalArgument in optionalArguments:
-                        if optionalArgument(expression[0], self.parser, namespace):
-                            return parseRest(positionalArguments, [a for a in optionalArguments if a != optionalArgument], expression[1:], namespace)
-                if len(positionalArguments) == 0:
-                    raise Exception("Too many arguments.")
-                elif positionalArguments[0](expression[0], self.parser, namespace):
-                    return parseRest(positionalArguments[1:], optionalArguments, expression[1:], namespace)
-                else:
-                    raise Exception("Illegal argument " + expression[0])
-        namespace = parseRest(self.getArgumentsByType("positional"), self.getArgumentsByType("optional"), expression, {})
-        return namespace
-
-actionMapping = {}
-actionMapping['help'] = _HelpAction()
-actionMapping['store'] = _StoreAction()
-actionMapping['storeTrue'] = _StoreTrueAction()
-
-class SargParser():
+class SargParser(object):
     def __init__(self):
         ## init
         self.prog = os.path.basename(sys.argv[0])
-        self.arguments = Arguments(self)
-        self.addArgument("-h,--help", type="optional", action="help", message="show this help message and exit.")
+        self.arguments = []
+        self.add_argument("-h,--help", mode="optional", action="help", message="show this help message and exit.")
 
-    def parseArg(self, expression=sys.argv[1:]):
+    def parse_arg(self, expression=sys.argv[1:]):
         try:
-            namespace = self.arguments.parse(expression)
+            namespace = self.parse(expression)
             return namespace
         except Exception, e:
             self.error(e.message)
 
-    def addArgument(self, name, type = "positional", action = "store", message = ""):
-        action = actionMapping[action]
-        self.arguments.addArgument(Argument(name, action, type, message))
+    def add_argument(self, name, mode="positional", action="store", message=""):
+        action = ACTION_MAPPING[action]
+        self.arguments.append(Argument(name, action, mode, message))
 
-    def printHelp(self):
-        self.printUsage()
-        l = self.arguments.maxArgumentLength()
+    def print_help(self):
+        self.print_usage()
+        l = self.max_argument_length()
         space = 4
         print
         print "Optional:"
-        for oa in self.arguments.getArgumentsByType("optional"):
+        for oa in self.get_arguments_by_type("optional"):
             print oa.name.ljust(l + space) + oa.message
         print
         print "Positional:"
-        for pa in self.arguments.getArgumentsByType("positional"):
+        for pa in self.get_arguments_by_type("positional"):
             print pa.name.ljust(l + space) + pa.message
+
+    def parse(self, expression):
+        def parse_rest(positional_arguments, optional_arguments, expression, namespace):
+            if len(expression) == 0 and len(positional_arguments) == 0:
+                return namespace
+            elif len(expression) == 0 and len(positional_arguments) > 0:
+                raise Exception("Not enough arguments.")
+            else:
+                for optional_argument in optional_arguments:
+                        if optional_argument(expression[0], self, namespace):
+                            return parse_rest(positional_arguments, [a for a in optional_arguments if a != optional_argument], expression[1:], namespace)
+                if len(positional_arguments) == 0:
+                    raise Exception("Too many arguments.")
+                elif positional_arguments[0](expression[0], self, namespace):
+                    return parse_rest(positional_arguments[1:], optional_arguments, expression[1:], namespace)
+                else:
+                    raise Exception("Illegal argument " + expression[0])
+        namespace = parse_rest(self.get_arguments_by_type("positional"), self.get_arguments_by_type("optional"), expression, {})
+        return namespace
+
+    def get_arguments_by_type(self, type):
+        return [argument for argument in self.arguments if argument.type == type]
+
+    def max_argument_length(self):
+        return max(map(lambda x: len(x.name),self.arguments))
+
+    def get_arguments(self):
+        return " ".join(["[" + x.name + "]" for x in self.get_arguments_by_type("optional")]) + " " + " ".join(["[" + x.name + "]" for x in self.get_arguments_by_type("positional")])
 
     def exit(self):
         sys.exit(0)
 
-    def error(self, errorMessage):
-        self.printUsage()
-        print errorMessage
+    def error(self, error_message):
+        self.print_usage()
+        print error_message
         sys.exit(0)
 
-    def printUsage(self):
-        print "Usage: " + self.prog + " " + str(self.arguments)
+    def print_usage(self):
+        print "Usage: " + self.prog + " " + self.get_arguments()
 
