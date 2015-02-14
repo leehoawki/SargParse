@@ -1,19 +1,25 @@
 SargParser
 ====
 
-This is just another argparser just as the python standard library offers.
+This is just another argparser like the one python standard library offers.
 
 Basic Examples:
 
-```js
-
-import SargParse
-s = SargParse.SargParser()
-s.addArgument('-x', type='optional', action='storeTrue', message='x factor')
-s.addArgument('-y', type='optional', action='storeTrue', message='y factor')
-s.addArgument('exp', message='expression')
-namespace = s.parseArg()
-
-```
+    import SargParse
+    s = SargParse.SargParser()
+    s.add_argument('-x', message='x factor')
+    s.add_argument('-y', message='y factor')
+    s.add_argument('exp', message='expression')
+    namespace = s.parse_arg()
 
 There are also some advanced features like group arguments.
+
+    import SargParse
+    s = SargParse.SargParser()
+    group = SargParse.GroupArgument()
+    group.add_argument('-a', message='a factor')
+    group.add_argument('-b', message='b factor')
+    group.add_argument('-c', message='c factor')
+    s.add_group_argument(group)
+    s.add_argument('exp', message='expression')
+    namespace = s.parse_arg()
