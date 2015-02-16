@@ -11,6 +11,17 @@ Basic Examples:
     s.add_argument('-y', message='y factor')
     s.add_argument('exp', message='expression')
     namespace = s.parse_arg()
+    
+    ./test1 --help
+    Usage: test.py [-h,--help] [-x] [-y] exp
+
+    Optional:
+    -h,--help    show this help message and exit.
+    -x           x factor
+    -y           y factor
+    
+    Positional:
+    exp          expression
 
 There are also some advanced features like group arguments.
 
@@ -23,3 +34,19 @@ There are also some advanced features like group arguments.
     s.add_group_argument(group)
     s.add_argument('exp', message='expression')
     namespace = s.parse_arg()
+    
+    ./test2 --help
+    Usage: test.py [-h,--help] [-a|-b|-c] exp
+
+    Optional:
+    -h,--help    show this help message and exit.
+    -a           a factor
+    -b           b factor
+    -c           c factor
+    
+    Positional:
+    exp          expression
+    
+    
+    
+    
