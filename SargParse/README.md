@@ -13,7 +13,7 @@ Basic Examples:
     namespace = s.parse_arg()
     
     ./test1 --help
-    Usage: test.py [-h,--help] [-x] [-y] exp
+    Usage: test1.py [-h,--help] [-x] [-y] exp
 
     Optional:
     -h,--help    show this help message and exit.
@@ -36,7 +36,7 @@ There are also some advanced features like group arguments.
     namespace = s.parse_arg()
     
     ./test2 --help
-    Usage: test.py [-h,--help] [-a|-b|-c] exp
+    Usage: test2.py [-h,--help] [-a|-b|-c] exp
 
     Optional:
     -h,--help    show this help message and exit.
