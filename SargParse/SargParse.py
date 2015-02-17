@@ -1,68 +1,101 @@
 import sys
 import os
 
-
 class Singleton(object):
     def __new__(cls, *args, **kw):
-        if not hasattr(cls, '_instance'):
+        if not hasattr(cls, "_instance"):
             orig = super(Singleton, cls)
             cls._instance = orig.__new__(cls, *args, **kw)
         return cls._instance
 
-
 class Action(Singleton):
     pass
 
-
 class _HelpAction(Action):
     def __call__(self, name, expression, parser, namespace):
-        for n in name.split(','):
+        for n in name.split(","):
             if n == expression:
                 parser.print_help()
-                parser.exit()
-
+                sys.exit(0)
 
 class _StoreAction(Action):
     def __call__(self, name, expression, parser, namespace):
         namespace[name] = expression
         return True
 
-
 class _StoreTrueAction(Action):
     def __call__(self, name, expression, parser, namespace):
-        for n in name.split(','):
+        for n in name.split(","):
             if n == expression:
                 namespace[n] = True
                 return True
         return False
 
+ACTION_MAPPING = {"help": _HelpAction(),
+                  "store": _StoreAction(),
+                  "storeTrue": _StoreTrueAction()}
 
 class Argument(object):
-    def __init__(self, name, action, type, message):
+    def __init__(self, name, message, **kwargs):
         self.name = name
-        self.action = action
-        self.type = type
         self.message = message
+        if self.name.split(",")[0][0] == "-":
+            self.type = "optional"
+            self.action = "storeTrue"
+        else:
+            self.type = "positional"
+            self.action = "store"
+        self.__dict__.update(kwargs)
 
     def __call__(self, expression, parser, namespace):
-        return self.action(self.name, expression, parser, namespace)
+        return ACTION_MAPPING[self.action](self.name, expression, parser, namespace)
 
+    def get_name(self):
+        if self.type == "optional":
+            return "[" + self.name + "]"
+        return self.name
+
+    def get_length(self):
+        return len(self.name)
+
+    def get_message(self, offset):
+        space = 4
+        return self.name.ljust(offset + space) + self.message
 
 class GroupArgument(Argument):
-    pass
+    def __init__(self):
+        self.arguments = []
 
+    def __call__(self, expression, parser, namespace):
+        for argument in self.arguments:
+            if argument(expression, parser, namespace):
+                return True
+        return False
 
-ACTION_MAPPING = {'help': _HelpAction(),
-                  'store': _StoreAction(),
-                  'storeTrue': _StoreTrueAction()}
+    def add_argument(self, name, message=""):
+        argument = Argument(name, message, type="optional")
+        self.arguments.append(argument)
+
+    def get_name(self):
+        return "[" + "|".join([x.name for x in self.arguments]) + "]"
+
+    def get_length(self):
+        return max(map(lambda x: len(x.name), self.arguments))
+
+    def get_message(self, offset):
+        messages = []
+        for argument in self.arguments:
+            messages.append(argument.get_message(offset))
+        return "\n".join(messages)
 
 
 class SargParser(object):
     def __init__(self):
         ## init
         self.prog = os.path.basename(sys.argv[0])
-        self.arguments = []
-        self.add_argument("-h,--help", mode="optional", action="help", message="show this help message and exit.")
+        self.__optional_arguments = []
+        self.__positional_arguments = []
+        self.add_argument("-h,--help", message="show this help message and exit.", type="optional", action="help")
 
     def parse_arg(self, expression=sys.argv[1:]):
         try:
@@ -71,22 +104,27 @@ class SargParser(object):
         except Exception, e:
             self.error(e.message)
 
-    def add_argument(self, name, mode="positional", action="store", message=""):
-        action = ACTION_MAPPING[action]
-        self.arguments.append(Argument(name, action, mode, message))
+    def add_argument(self, name, message="", **kwargs):
+        argument = Argument(name, message, **kwargs)
+        if argument.type == "optional":
+            self.__optional_arguments.append(argument)
+        else:
+            self.__positional_arguments.append(argument)
+
+    def add_group_argument(self, group):
+        self.__optional_arguments.append(group)
 
     def print_help(self):
         self.print_usage()
         l = self.max_argument_length()
-        space = 4
         print
         print "Optional:"
-        for oa in self.get_arguments_by_type("optional"):
-            print oa.name.ljust(l + space) + oa.message
+        for oa in self.__optional_arguments:
+            print oa.get_message(l)
         print
         print "Positional:"
-        for pa in self.get_arguments_by_type("positional"):
-            print pa.name.ljust(l + space) + pa.message
+        for pa in self.__positional_arguments:
+            print pa.get_message(l)
 
     def parse(self, expression):
         def parse_rest(positional_arguments, optional_arguments, expression, namespace):
@@ -95,29 +133,22 @@ class SargParser(object):
             elif len(expression) == 0 and len(positional_arguments) > 0:
                 raise Exception("Not enough arguments.")
             else:
-                for optional_argument in optional_arguments:
-                        if optional_argument(expression[0], self, namespace):
-                            return parse_rest(positional_arguments, [a for a in optional_arguments if a != optional_argument], expression[1:], namespace)
+                for argument in optional_arguments:
+                        if argument(expression[0], self, namespace):
+                            return parse_rest(positional_arguments, [a for a in optional_arguments if a != argument], expression[1:], namespace)
                 if len(positional_arguments) == 0:
-                    raise Exception("Too many arguments.")
+                    raise Exception("Illegal argument " + expression[0])
                 elif positional_arguments[0](expression[0], self, namespace):
                     return parse_rest(positional_arguments[1:], optional_arguments, expression[1:], namespace)
-                else:
-                    raise Exception("Illegal argument " + expression[0])
-        namespace = parse_rest(self.get_arguments_by_type("positional"), self.get_arguments_by_type("optional"), expression, {})
+
+        namespace = parse_rest(self.__positional_arguments, self.__optional_arguments, expression, {})
         return namespace
 
-    def get_arguments_by_type(self, type):
-        return [argument for argument in self.arguments if argument.type == type]
-
     def max_argument_length(self):
-        return max(map(lambda x: len(x.name),self.arguments))
+        return max(map(lambda x: x.get_length(), self.__optional_arguments + self.__positional_arguments))
 
     def get_arguments(self):
-        return " ".join(["[" + x.name + "]" for x in self.get_arguments_by_type("optional")]) + " " + " ".join(["[" + x.name + "]" for x in self.get_arguments_by_type("positional")])
-
-    def exit(self):
-        sys.exit(0)
+        return " ".join([x.get_name() for x in self.__optional_arguments + self.__positional_arguments])
 
     def error(self, error_message):
         self.print_usage()
@@ -126,4 +157,3 @@ class SargParser(object):
 
     def print_usage(self):
         print "Usage: " + self.prog + " " + self.get_arguments()
-
