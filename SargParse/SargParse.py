@@ -10,6 +10,10 @@ class Singleton(object):
         return cls._instance
 
 
+class MyException(Exception):
+    pass
+
+
 class Action(Singleton):
     pass
 
@@ -119,8 +123,8 @@ class SargParser(object):
     def parse_arg(self, expression=sys.argv[1:]):
         try:
             return NameSpace(self.parse(expression))
-        except Exception, e:
-            self.error(e.message)
+        except MyException, e:
+            self.error(e)
 
     def add_argument(self, name, message="", **kwargs):
         argument = Argument(name, message, **kwargs)
@@ -149,13 +153,13 @@ class SargParser(object):
             if len(expression) == 0 and len(positional_arguments) == 0:
                 return namespace
             elif len(expression) == 0 and len(positional_arguments) > 0:
-                raise Exception("Not enough arguments.")
+                raise MyException("Not enough arguments.")
             else:
                 for argument in optional_arguments:
                         if argument(expression[0], self, namespace):
                             return parse_rest(positional_arguments, [a for a in optional_arguments if a != argument], expression[1:], namespace)
                 if len(positional_arguments) == 0:
-                    raise Exception("Illegal argument " + expression[0])
+                    raise MyException("Illegal argument " + expression[0])
                 elif positional_arguments[0](expression[0], self, namespace):
                     return parse_rest(positional_arguments[1:], optional_arguments, expression[1:], namespace)
 
@@ -168,10 +172,11 @@ class SargParser(object):
     def get_arguments(self):
         return " ".join([x.get_name() for x in self.__optional_arguments + self.__positional_arguments])
 
-    def error(self, error_message):
+    def error(self, exception):
         self.print_usage()
-        print error_message
+        print exception
         sys.exit(0)
 
     def print_usage(self):
         print "Usage: " + self.prog + " " + self.get_arguments()
+
