@@ -1,6 +1,7 @@
 import sys
 import os
 
+
 class Singleton(object):
     def __new__(cls, *args, **kw):
         if not hasattr(cls, "_instance"):
@@ -8,8 +9,10 @@ class Singleton(object):
             cls._instance = orig.__new__(cls, *args, **kw)
         return cls._instance
 
+
 class Action(Singleton):
     pass
+
 
 class _HelpAction(Action):
     def __call__(self, name, expression, parser, namespace):
@@ -18,22 +21,25 @@ class _HelpAction(Action):
                 parser.print_help()
                 sys.exit(0)
 
+
 class _StoreAction(Action):
     def __call__(self, name, expression, parser, namespace):
-        namespace[name] = expression
+        namespace[name.strip("-")] = expression
         return True
+
 
 class _StoreTrueAction(Action):
     def __call__(self, name, expression, parser, namespace):
         for n in name.split(","):
             if n == expression:
-                namespace[n] = True
+                namespace[name.strip("-")] = True
                 return True
         return False
 
 ACTION_MAPPING = {"help": _HelpAction(),
                   "store": _StoreAction(),
                   "storeTrue": _StoreTrueAction()}
+
 
 class Argument(object):
     def __init__(self, name, message, **kwargs):
@@ -62,6 +68,7 @@ class Argument(object):
         space = 4
         return self.name.ljust(offset + space) + self.message
 
+
 class GroupArgument(Argument):
     def __init__(self):
         self.arguments = []
@@ -89,6 +96,18 @@ class GroupArgument(Argument):
         return "\n".join(messages)
 
 
+class NameSpace(object):
+    def __init__(self, attributes):
+        self.__dict__.update(attributes)
+
+    def __getattr__ (self, name):
+        try:
+            o = object.__getattribute__(self, name)
+            return o
+        except Exception, e:
+            return None
+
+
 class SargParser(object):
     def __init__(self):
         ## init
@@ -99,8 +118,7 @@ class SargParser(object):
 
     def parse_arg(self, expression=sys.argv[1:]):
         try:
-            namespace = self.parse(expression)
-            return namespace
+            return NameSpace(self.parse(expression))
         except Exception, e:
             self.error(e.message)
 
