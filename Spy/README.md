@@ -4,7 +4,7 @@ Spy
 
 Thought it difficult to manipulate the text with bash or awk command.
 
-Found this [reposity](https://github.com/Russell91/pythonpy) by chance and think it is a good idea, so I used his idea and then implement mine own tool for fun.
+Found this [repository](https://github.com/Russell91/pythonpy) by chance and think it is a good idea, so I used his idea and then implement mine own tool for fun.
 
 ## Basic examples
 
