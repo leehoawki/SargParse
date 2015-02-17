@@ -21,7 +21,7 @@ Found this [reposity](https://github.com/Russell91/pythonpy) by chance and think
     $ Spy 'range(3)' | Spy -f 'int(x)==2'
     2
     ## mapreduce
-    $ Spy 'range(3)' | Spy -x 'int(x) ** 2 ' | py -r 'int(x) + int(y)'
+    $ Spy 'range(3)' | Spy -x 'int(x) ** 2 ' | Spy -r 'int(x) + int(y)'
     5
     ## list process
     $ cat /etc/passwd | Spy -l 'x[::-1]' ## reverse the stdin
