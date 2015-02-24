@@ -118,7 +118,7 @@ class SargParser(object):
         self.prog = os.path.basename(sys.argv[0])
         self.__optional_arguments = []
         self.__positional_arguments = []
-        self.add_argument("-h,--help", message="show this help message and exit.", type="optional", action="help")
+        self.add_argument("-h,--help", message="show this help message and exit.", action="help")
 
     def parse_arg(self, expression=sys.argv[1:]):
         try:
