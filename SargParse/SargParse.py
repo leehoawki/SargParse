@@ -181,9 +181,7 @@ class SargParser(object):
         std_err("Usage: " + self.prog + " " + self.get_arguments())
 
 def std_err(message=""):
-    sys.stderr.write(str(message))
-    sys.stderr.write("\n")
+    sys.stderr.write(str(message) + "\n")
 
 def std_out(message=""):
-    sys.stdout.write(str(message))
-    sys.stderr.write("\n")
+    sys.stdout.write(str(message) + "\n")
