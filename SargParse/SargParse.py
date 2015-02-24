@@ -137,7 +137,7 @@ class SargParser(object):
         self.__optional_arguments.append(group)
 
     def print_help(self):
-        self.print_usage()
+        std_out("Usage: " + self.prog + " " + self.get_arguments())
         l = self.max_argument_length()
         std_out()
         std_out("Optional:")
