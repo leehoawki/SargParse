@@ -139,14 +139,14 @@ class SargParser(object):
     def print_help(self):
         self.print_usage()
         l = self.max_argument_length()
-        print
-        print "Optional:"
+        err()
+        err("Optional:")
         for oa in self.__optional_arguments:
-            print oa.get_message(l)
-        print
-        print "Positional:"
+            err(oa.get_message(l))
+        err()
+        err("Positional:")
         for pa in self.__positional_arguments:
-            print pa.get_message(l)
+            err(pa.get_message(l))
 
     def parse(self, expression):
         def parse_rest(positional_arguments, optional_arguments, expression, namespace):
@@ -174,9 +174,13 @@ class SargParser(object):
 
     def error(self, exception):
         self.print_usage()
-        print exception
-        sys.exit(0)
+        err(exception)
+        sys.exit(1)
 
     def print_usage(self):
-        print "Usage: " + self.prog + " " + self.get_arguments()
+        err("Usage: " + self.prog + " " + self.get_arguments())
+
+def err(message=""):
+    sys.stderr.write(str(message))
+    sys.stderr.write("\n")
 
