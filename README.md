@@ -9,3 +9,6 @@ A little scheme interpreter.
 
 #### [Spy](/Spy) 
 Command line tool used to manipulate data with pipe.
+
+#### [Swipe](/Swipe)
+Pattern match expression helping to write Scala style code.
