@@ -21,18 +21,18 @@ def parse(tokens):
         tokens.pop(0)
         return L
     else:
-		return atom(t)
+        return atom(t)
 
 def atom(token):
-	try :
-		return int(token)
-	except :
-		try :
-			return float(token)
-		except:
-			return token
+    try :
+        return int(token)
+    except :
+        try :
+            return float(token)
+        except:
+            return token
 
 def tokenize(exp):
-	return exp.replace(')',' ) ').replace('(',' ( ').split()
+    return exp.replace(')',' ) ').replace('(',' ( ').split()
 
 
