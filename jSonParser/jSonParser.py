@@ -164,7 +164,6 @@ def parse_string(s):
     """
     index = 1
     escape = False
-    #while index < len(s) and ((s[index] != '"') or ((s[index] == '"') and (s[index-1] == "\\"))):
     while index < len(s):
         if escape:
             escape = False
