@@ -66,10 +66,10 @@ def load(s):
 
     if s[0] == "{":
         o = parse_obj(s)
-        return o
+        return o[0]
     elif s[0] == "[":
         a = parse_array(s)
-        return a
+        return a[0]
     else:
         raise Exception("parse error:" + s)
 
@@ -109,11 +109,11 @@ def parse_obj(s):
     l = []
     while True:
         if s[0] != '"':
-            raise Exception('expecting a "' + s)
+            raise Exception('expecting a "')
         key, s = parse_string(s)
         s = trim(s)
         if s[0] != ':':
-            raise Exception('expecting a :' + s)
+            raise Exception('expecting a :')
         s = trim(s[1:])
         val, s = parse_value(s)
         s = trim(s)
@@ -159,10 +159,22 @@ def parse_string(s):
     ("wa", 'haha')
     >>> parse_string('\"w\\\\\\"a\"haha')
     ("w\\\"a", 'haha')
+    >>> parse_string('"wa\\\\\\\\"haha')
+    ("wa\\\\", 'haha')
     """
     index = 1
-    while index < len(s) and ((s[index] != '"') or ((s[index] == '"') and (s[index-1] == "\\"))):
+    escape = False
+    #while index < len(s) and ((s[index] != '"') or ((s[index] == '"') and (s[index-1] == "\\"))):
+    while index < len(s):
+        if escape:
+            escape = False
+        elif s[index] == '"':
+            break
+        elif s[index] == '\\':
+            escape = True
         index += 1
+    if index >= len(s) or s[index] != '"':
+        raise Exception('expecting a "')
     return JString(s[1:index]), s[index+1:]
 
 
