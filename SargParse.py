@@ -134,12 +134,44 @@ class NameSpace(object):
 
 class DefaultErrorHandler(object):
     def handle(self, e):
-        print(self.get_usage(), file=sys.stderr)
-        print(e, file=sys.stderr)
         sys.exit(1)
 
 
 class SargParser(object):
+    """
+    >>> import SargParse
+    >>> s = SargParse.SargParser()
+    >>> s.add_argument('-x', message='x factor')
+    >>> s.add_argument('-y', message='y factor')
+    >>> s.add_argument('exp', message='expression')
+    >>> s.print_help()
+    Usage: docrunner.py [-h,--help] [-x] [-y] exp
+    Optional:
+    -h,--help    show this help message and exit.
+    -x           x factor
+    -y           y factor
+    Positional:
+    exp          expression
+
+
+    >>> s = SargParse.SargParser()
+    >>> group = SargParse.GroupArgument()
+    >>> group.add_argument('-a', message='a factor')
+    >>> group.add_argument('-b', message='b factor')
+    >>> group.add_argument('-c', message='c factor')
+    >>> s.add_group_argument(group)
+    >>> s.add_argument('exp', message='expression')
+    >>> s.print_help()
+    Usage: docrunner.py [-h,--help] [-a|-b|-c] exp
+    Optional:
+    -h,--help    show this help message and exit.
+    -a           a factor
+    -b           b factor
+    -c           c factor
+    Positional:
+    exp          expression
+    """
+
     def __init__(self, handler=DefaultErrorHandler):
         self.prog = os.path.basename(sys.argv[0])
         self.optional_arg = []
@@ -150,10 +182,12 @@ class SargParser(object):
     def get_usage(self):
         return "Usage: %s %s" % (self.prog, self.get_arguments())
 
-    def parse_arg(self, expression=sys.argv[1:]):
+    def parse_arg(self, expression=(sys.argv)[1:]):
         try:
             return NameSpace(self.parse(expression))
         except SargException, e:
+            print(self.get_usage(), file=sys.stderr)
+            print(e, file=sys.stderr)
             self.handler.handle(e)
 
     def add_argument(self, name, message="", **kwargs):
@@ -204,3 +238,8 @@ class SargParser(object):
 
     def get_arguments(self):
         return " ".join([x.get_name() for x in self.optional_arg + self.positional_arg])
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
