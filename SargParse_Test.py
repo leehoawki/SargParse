@@ -63,7 +63,7 @@ class SargParse_Test(unittest.TestCase):
         e = False
         try:
             namespace = s.parse_arg(['-x', '-y', 'exp', 'fuck'])
-        except SargParse.TooManyArgException, e:
+        except SargParse.IllegalArgException, e:
             e = True
         assert e
 

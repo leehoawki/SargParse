@@ -20,11 +20,6 @@ class NotEnoughArgException(SargException):
         super(NotEnoughArgException, self).__init__("Not enough arguments %s." % message)
 
 
-class TooManyArgException(SargException):
-    def __init__(self, message="", *args, **kwargs):
-        super(TooManyArgException, self).__init__("Too many arguments %s." % message)
-
-
 class IllegalArgException(SargException):
     def __init__(self, message="", *args, **kwargs):
         super(IllegalArgException, self).__init__("Illegal arguments %s." % message)
@@ -39,7 +34,7 @@ class Action(Singleton):
     pass
 
 
-class _HelpAction(Action):
+class HelpAction(Action):
     def __call__(self, name, expression, parser, namespace):
         for n in name.split(","):
             if n == expression:
@@ -47,13 +42,16 @@ class _HelpAction(Action):
                 sys.exit(0)
 
 
-class _StoreAction(Action):
+class StoreAction(Action):
     def __call__(self, name, expression, parser, namespace):
-        namespace[name.strip("-")] = expression
-        return True
+        if expression.startswith('-'):
+            return False
+        else:
+            namespace[name] = expression
+            return True
 
 
-class _StoreTrueAction(Action):
+class StoreTrueAction(Action):
     def __call__(self, name, expression, parser, namespace):
         for n in name.split(","):
             if n == expression:
@@ -62,9 +60,9 @@ class _StoreTrueAction(Action):
         return False
 
 
-ACTION_MAPPING = {"help": _HelpAction(),
-                  "store": _StoreAction(),
-                  "storeTrue": _StoreTrueAction()}
+ACTION_MAPPING = {"help": HelpAction(),
+                  "store": StoreAction(),
+                  "storeTrue": StoreTrueAction()}
 
 
 class Argument(object):
@@ -195,6 +193,8 @@ class SargParser(object):
                     raise IllegalArgException(expression[0])
                 elif positional_arguments[0](expression[0], self, namespace):
                     return parse_rest(positional_arguments[1:], optional_arguments, expression[1:], namespace)
+                else:
+                    raise IllegalArgException(expression[0])
 
         namespace = parse_rest(self.positional_arg, self.optional_arg, expression, {})
         return namespace
