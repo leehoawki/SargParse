@@ -1,7 +1,7 @@
 SargParser
 ====
 
-This is just another argparser like the one python standard library offers.
+This is just another arguments parser like the one python standard library offers.
 
 Basic Examples:
 

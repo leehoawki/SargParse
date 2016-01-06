@@ -2,24 +2,19 @@ import unittest
 import SargParse
 
 
-class TestHandler(object):
-    def handle(self, e):
-        raise e
-
-
 class SargParse_Test(unittest.TestCase):
     s = None
     a = None
 
     def setUp(self):
         global s
-        s = SargParse.SargParser(handler=TestHandler)
+        s = SargParse.SargParser(handler=SargParse.DebugErrorHandler)
         s.add_argument('-x', message='x factor')
         s.add_argument('-y', message='y factor')
         s.add_argument('exp', message='expression')
 
         global a
-        a = SargParse.SargParser(handler=TestHandler)
+        a = SargParse.SargParser(handler=SargParse.DebugErrorHandler)
         group = SargParse.GroupArgument()
         group.add_argument('-a', message='a factor')
         group.add_argument('-b', message='b factor')

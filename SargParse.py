@@ -30,41 +30,6 @@ class InCompatibleArgException(SargException):
         super(InCompatibleArgException, self).__init__("Incompatible arguments %s." % message)
 
 
-class Action(Singleton):
-    pass
-
-
-class HelpAction(Action):
-    def __call__(self, name, expression, parser, namespace):
-        for n in name.split(","):
-            if n == expression:
-                parser.print_help()
-                sys.exit(0)
-
-
-class StoreAction(Action):
-    def __call__(self, name, expression, parser, namespace):
-        if expression.startswith('-'):
-            return False
-        else:
-            namespace[name] = expression
-            return True
-
-
-class StoreTrueAction(Action):
-    def __call__(self, name, expression, parser, namespace):
-        for n in name.split(","):
-            if n == expression:
-                namespace[name.strip("-")] = True
-                return True
-        return False
-
-
-ACTION_MAPPING = {"help": HelpAction(),
-                  "store": StoreAction(),
-                  "storeTrue": StoreTrueAction()}
-
-
 class Argument(object):
     def __init__(self, name, message, **kwargs):
         self.name = name
@@ -77,20 +42,47 @@ class Argument(object):
             self.action = "store"
         self.__dict__.update(kwargs)
 
-    def __call__(self, expression, parser, namespace):
-        return ACTION_MAPPING[self.action](self.name, expression, parser, namespace)
-
-    def get_name(self):
-        if self.type == "optional":
-            return "[" + self.name + "]"
-        return self.name
-
-    def get_length(self):
-        return len(self.name)
-
     def get_message(self, offset):
         space = 4
         return self.name.ljust(offset + space) + self.message
+
+    def accept(self, visitor):
+        return getattr(visitor, "visit%s" % self.__class__.__name__)(self)
+
+    @classmethod
+    def create(cls, name, message, **kwargs):
+        if name == "h,--help":
+            return HelpArgument(name, message, **kwargs)
+        elif name.split(",")[0][0] == "-":
+            return OptionalArgument(name, message, **kwargs)
+        else:
+            return PositionalArgument(name, message, **kwargs)
+
+
+class Arguments(Argument):
+    def __init__(self):
+        self.arguments = []
+
+    def arguments(self):
+        pass
+
+    def append(self, argument):
+        self.arguments.append(argument)
+
+    def values(self):
+        return self.arguments
+
+
+class OptionalArgument(Argument):
+    pass
+
+
+class PositionalArgument(Argument):
+    pass
+
+
+class HelpArgument(Argument):
+    pass
 
 
 class GroupArgument(Argument):
@@ -120,6 +112,63 @@ class GroupArgument(Argument):
         return "\n".join(messages)
 
 
+class Visitor(Singleton):
+    def visitArguments(self, args):
+        pass
+
+    def visitOptionalArgument(self, arg):
+        pass
+
+    def visitPositionalArgument(self, arg):
+        pass
+
+    def visitHelpArgument(self, arg):
+        pass
+
+
+class UsageVisitor(Visitor):
+    def visitArguments(self, args):
+        prog = os.path.basename(sys.argv[0])
+        return "Usage: %s %s" % (prog, " ".join([a.accept(self) for a in args.values()]))
+
+    def visitOptionalArgument(self, arg):
+        return "[" + arg.name + "]"
+
+    def visitPositionalArgument(self, arg):
+        return arg.name
+
+    def visitHelpArgument(self, arg):
+        return "[" + arg.name + "]"
+
+
+class LengthVisitor(Visitor):
+    def visitArguments(self, args):
+        return max([a.accept(self) for a in args.values()])
+
+    def visitOptionalArgument(self, arg):
+        return len(arg.name)
+
+    def visitPositionalArgument(self, arg):
+        return len(arg.name)
+
+    def visitHelpArgument(self, arg):
+        return len(arg.name)
+
+
+class ParseVisitor(Visitor):
+    def visitArguments(self, args):
+        pass
+
+    def visitOptionalArgument(self, arg):
+        pass
+
+    def visitPositionalArgument(self, arg):
+        pass
+
+    def visitHelpArgument(self, arg):
+        pass
+
+
 class NameSpace(object):
     def __init__(self, attributes):
         self.__dict__.update(attributes)
@@ -135,6 +184,11 @@ class NameSpace(object):
 class DefaultErrorHandler(object):
     def handle(self, e):
         sys.exit(1)
+
+
+class DebugErrorHandler(object):
+    def handle(self, e):
+        raise e
 
 
 class SargParser(object):
@@ -173,14 +227,13 @@ class SargParser(object):
     """
 
     def __init__(self, handler=DefaultErrorHandler):
-        self.prog = os.path.basename(sys.argv[0])
         self.optional_arg = []
         self.positional_arg = []
+        self.arguments = Arguments()
         self.add_argument("-h,--help", message="show this help message and exit.", action="help")
         self.handler = handler()
-
-    def get_usage(self):
-        return "Usage: %s %s" % (self.prog, self.get_arguments())
+        self.usage_visitor = UsageVisitor()
+        self.length_visitor = LengthVisitor()
 
     def parse_arg(self, expression=(sys.argv)[1:]):
         try:
@@ -197,12 +250,14 @@ class SargParser(object):
         else:
             self.positional_arg.append(argument)
 
+        self.arguments.append(Argument.create(name, message, **kwargs))
+
     def add_group_argument(self, group):
         self.optional_arg.append(group)
 
     def print_help(self):
         print(self.get_usage())
-        l = self.max_argument_length()
+        l = self.get_arguments_length()
         print
         print("Optional:")
         for oa in self.optional_arg:
@@ -233,13 +288,14 @@ class SargParser(object):
         namespace = parse_rest(self.positional_arg, self.optional_arg, expression, {})
         return namespace
 
-    def max_argument_length(self):
-        return max(map(lambda x: x.get_length(), self.optional_arg + self.positional_arg))
+    def get_arguments_length(self):
+        return self.length_visitor.visitArguments(self.arguments)
 
-    def get_arguments(self):
-        return " ".join([x.get_name() for x in self.optional_arg + self.positional_arg])
+    def get_usage(self):
+        return self.usage_visitor.visitArguments(self.arguments)
 
 
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()
