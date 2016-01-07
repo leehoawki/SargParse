@@ -14,7 +14,6 @@ Basic Examples:
     
     ./test1 --help
     Usage: test1.py [-h,--help] [-x] [-y] exp
-
     Optional:
     -h,--help    show this help message and exit.
     -x           x factor
@@ -36,7 +35,6 @@ There are also some advanced features like group arguments.
     
     ./test2 --help
     Usage: test2.py [-h,--help] [-a|-b|-c] exp
-
     Optional:
     -h,--help    show this help message and exit.
     -a           a factor
