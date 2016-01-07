@@ -86,6 +86,21 @@ class SargParse_Test(unittest.TestCase):
             e = True
         assert e
 
+    def test_argument_error(self):
+        e = False
+        try:
+            b = SargParse.SargParser(handler=SargParse.DebugErrorHandler)
+            b.add_argument('-x,b', message='error argument')
+        except SargParse.ArgumentError, e:
+            e = True
+        assert e
+
+    def test_dulplicate_arg(self):
+        g = SargParse.GroupArgument()
+        g.add_argument('-g', message='g argument')
+        g.add_argument('-g', message='gb argument')
+        assert len(g.arguments) == 1
+
 
 if __name__ == '__main__':
     unittest.main()

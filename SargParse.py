@@ -34,6 +34,11 @@ class HelpException(SargException):
     pass
 
 
+class ArgumentError(SargException):
+    def __init__(self, message="", *args, **kwargs):
+        super(ArgumentError, self).__init__("Argument error %s." % message)
+
+
 class Argument(object):
     def __init__(self, name, message, **kwargs):
         self.name = name
@@ -55,7 +60,13 @@ class Arguments(Argument):
 
 
 class OptionalArgument(Argument):
-    pass
+    def __init__(self, name, message, **kwargs):
+        names = name.split(',')
+        if len(names) > 1:
+            for n in names:
+                if not n.startswith('-'):
+                    raise ArgumentError(name)
+        super(OptionalArgument, self).__init__(name, message, **kwargs)
 
 
 class HelpArgument(OptionalArgument):
@@ -71,6 +82,7 @@ class GroupArgument(OptionalArgument):
         self.arguments = []
 
     def add_argument(self, name, message=""):
+        self.arguments = [x for x in self.arguments if x.name != name]
         argument = OptionalArgument(name, message)
         self.arguments.append(argument)
 
@@ -189,16 +201,17 @@ class ParseVisitor(Visitor):
         raise NotEnoughArgException(" ".join(self.expression))
 
     def visitGroupArgument(self, arg):
-        conflict = None
+        i = []
         for a in arg.arguments:
             for index, e in enumerate(self.expression):
                 if e == a.name:
-                    if conflict:
-                        raise InCompatibleArgException(conflict + " " + a.name)
-                    else:
-                        conflict = e
-                        self.namespace[a.name.strip('-')] = True
-                        self.expression.pop(index)
+                    i.append((index, e))
+        if len(i) > 1:
+            raise InCompatibleArgException(" ".join([x[1] for x in i]))
+        elif len(i) == 1:
+            index, e = i[0]
+            self.namespace[e.strip('-')] = True
+            self.expression.pop(index)
 
 
 class NameSpace(dict):
