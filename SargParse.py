@@ -34,29 +34,9 @@ class Argument(object):
     def __init__(self, name, message, **kwargs):
         self.name = name
         self.message = message
-        if self.name.split(",")[0][0] == "-":
-            self.type = "optional"
-            self.action = "storeTrue"
-        else:
-            self.type = "positional"
-            self.action = "store"
-        self.__dict__.update(kwargs)
-
-    def get_message(self, offset):
-        space = 4
-        return self.name.ljust(offset + space) + self.message
 
     def accept(self, visitor):
         return getattr(visitor, "visit%s" % self.__class__.__name__)(self)
-
-    @classmethod
-    def create(cls, name, message, **kwargs):
-        if name == "h,--help":
-            return HelpArgument(name, message, **kwargs)
-        elif name.split(",")[0][0] == "-":
-            return OptionalArgument(name, message, **kwargs)
-        else:
-            return PositionalArgument(name, message, **kwargs)
 
 
 class Arguments(Argument):
@@ -85,31 +65,13 @@ class HelpArgument(Argument):
     pass
 
 
-class GroupArgument(Argument):
+class GroupArgument(OptionalArgument):
     def __init__(self):
         self.arguments = []
 
-    def __call__(self, expression, parser, namespace):
-        for argument in self.arguments:
-            if argument(expression, parser, namespace):
-                return True
-        return False
-
     def add_argument(self, name, message=""):
-        argument = Argument(name, message, type="optional")
+        argument = OptionalArgument(name, message)
         self.arguments.append(argument)
-
-    def get_name(self):
-        return "[" + "|".join([x.name for x in self.arguments]) + "]"
-
-    def get_length(self):
-        return max(map(lambda x: len(x.name), self.arguments))
-
-    def get_message(self, offset):
-        messages = []
-        for argument in self.arguments:
-            messages.append(argument.get_message(offset))
-        return "\n".join(messages)
 
 
 class Visitor(Singleton):
@@ -123,6 +85,9 @@ class Visitor(Singleton):
         pass
 
     def visitHelpArgument(self, arg):
+        pass
+
+    def visitGroupArgument(self, arg):
         pass
 
 
@@ -140,6 +105,9 @@ class UsageVisitor(Visitor):
     def visitHelpArgument(self, arg):
         return "[" + arg.name + "]"
 
+    def visitGroupArgument(self, arg):
+        return "[" + "|".join([a.name for a in arg.arguments]) + "]"
+
 
 class LengthVisitor(Visitor):
     def visitArguments(self, args):
@@ -153,6 +121,33 @@ class LengthVisitor(Visitor):
 
     def visitHelpArgument(self, arg):
         return len(arg.name)
+
+    def visitGroupArgument(self, arg):
+        return max([a.accept(self) for a in arg.arguments])
+
+
+class ListVisitor(Visitor):
+    def __init__(self):
+        self.space = 4
+        self.offset = 0
+
+    def visitArguments(self, args):
+        o = "\n".join([a.accept(self) for a in args.arguments if isinstance(a, OptionalArgument)])
+        p = "\n".join([a.accept(self) for a in args.arguments if isinstance(a, PositionalArgument)])
+        s = "Optional:\n%s\nPositional:\n%s"
+        return s % (o, p)
+
+    def visitOptionalArgument(self, arg):
+        return arg.name.ljust(self.offset + self.space) + arg.message
+
+    def visitPositionalArgument(self, arg):
+        return arg.name.ljust(self.offset + self.space) + arg.message
+
+    def visitHelpArgument(self, arg):
+        return arg.name.ljust(self.offset + self.space) + arg.message
+
+    def visitGroupArgument(self, arg):
+        return "\n".join([argument.accept(self) for argument in arg.arguments])
 
 
 class ParseVisitor(Visitor):
@@ -168,15 +163,14 @@ class ParseVisitor(Visitor):
     def visitHelpArgument(self, arg):
         pass
 
+    def visitGroupArgument(self, arg):
+        pass
 
-class NameSpace(object):
-    def __init__(self, attributes):
-        self.__dict__.update(attributes)
 
+class NameSpace(dict):
     def __getattr__(self, name):
         try:
-            o = object.__getattribute__(self, name)
-            return o
+            return self[name]
         except Exception, e:
             return None
 
@@ -227,13 +221,13 @@ class SargParser(object):
     """
 
     def __init__(self, handler=DefaultErrorHandler):
-        self.optional_arg = []
-        self.positional_arg = []
         self.arguments = Arguments()
-        self.add_argument("-h,--help", message="show this help message and exit.", action="help")
+        self.add_argument("-h,--help", message="show this help message and exit.")
         self.handler = handler()
         self.usage_visitor = UsageVisitor()
         self.length_visitor = LengthVisitor()
+        self.list_visitor = ListVisitor()
+        self.parse_visitor = ParseVisitor()
 
     def parse_arg(self, expression=(sys.argv)[1:]):
         try:
@@ -244,28 +238,22 @@ class SargParser(object):
             self.handler.handle(e)
 
     def add_argument(self, name, message="", **kwargs):
-        argument = Argument(name, message, **kwargs)
-        if argument.type == "optional":
-            self.optional_arg.append(argument)
+        if name == "h,--help":
+            argument = HelpArgument(name, message, **kwargs)
+        elif name.startswith("-"):
+            argument = OptionalArgument(name, message, **kwargs)
         else:
-            self.positional_arg.append(argument)
-
-        self.arguments.append(Argument.create(name, message, **kwargs))
+            argument = PositionalArgument(name, message, **kwargs)
+        self.arguments.append(argument)
 
     def add_group_argument(self, group):
-        self.optional_arg.append(group)
+        self.arguments.append(group)
 
     def print_help(self):
         print(self.get_usage())
-        l = self.get_arguments_length()
+        self.list_visitor.offset = self.get_arguments_length()
         print
-        print("Optional:")
-        for oa in self.optional_arg:
-            print(oa.get_message(l))
-        print
-        print("Positional:")
-        for pa in self.positional_arg:
-            print(pa.get_message(l))
+        print(self.get_arguments_list())
 
     def parse(self, expression):
         def parse_rest(positional_arguments, optional_arguments, expression, namespace):
@@ -293,6 +281,9 @@ class SargParser(object):
 
     def get_usage(self):
         return self.usage_visitor.visitArguments(self.arguments)
+
+    def get_arguments_list(self):
+        return self.list_visitor.visitArguments(self.arguments)
 
 
 if __name__ == "__main__":

@@ -19,7 +19,6 @@ Basic Examples:
     -h,--help    show this help message and exit.
     -x           x factor
     -y           y factor
-    
     Positional:
     exp          expression
 
@@ -43,7 +42,6 @@ There are also some advanced features like group arguments.
     -a           a factor
     -b           b factor
     -c           c factor
-    
     Positional:
     exp          expression
     
