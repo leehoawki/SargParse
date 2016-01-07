@@ -47,9 +47,6 @@ class Arguments(Argument):
     def __init__(self):
         self.arguments = []
 
-    def arguments(self):
-        pass
-
     def append(self, argument):
         self.arguments.append(argument)
 
