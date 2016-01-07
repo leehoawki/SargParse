@@ -151,6 +151,14 @@ class ListVisitor(Visitor):
 
 
 class ParseVisitor(Visitor):
+    def __init__(self):
+        self.expression = None
+        self.namespace = None
+
+    def init(self, expression):
+        self.expression = expression
+        self.namespace = {}
+
     def visitArguments(self, args):
         pass
 
@@ -273,8 +281,9 @@ class SargParser(object):
                 else:
                     raise IllegalArgException(expression[0])
 
-        namespace = parse_rest(self.positional_arg, self.optional_arg, expression, {})
-        return namespace
+        self.parse_visitor.init(expression)
+        self.parse_visitor.visitArguments(self.arguments)
+        return self.parse_visitor.namespace
 
     def get_arguments_length(self):
         return self.length_visitor.visitArguments(self.arguments)
