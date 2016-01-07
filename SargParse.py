@@ -30,6 +30,10 @@ class InCompatibleArgException(SargException):
         super(InCompatibleArgException, self).__init__("Incompatible arguments %s." % message)
 
 
+class HelpException(SargException):
+    pass
+
+
 class Argument(object):
     def __init__(self, name, message, **kwargs):
         self.name = name
@@ -57,11 +61,11 @@ class OptionalArgument(Argument):
     pass
 
 
-class PositionalArgument(Argument):
+class HelpArgument(OptionalArgument):
     pass
 
 
-class HelpArgument(Argument):
+class PositionalArgument(Argument):
     pass
 
 
@@ -81,10 +85,10 @@ class Visitor(Singleton):
     def visitOptionalArgument(self, arg):
         pass
 
-    def visitPositionalArgument(self, arg):
+    def visitHelpArgument(self, arg):
         pass
 
-    def visitHelpArgument(self, arg):
+    def visitPositionalArgument(self, arg):
         pass
 
     def visitGroupArgument(self, arg):
@@ -99,11 +103,11 @@ class UsageVisitor(Visitor):
     def visitOptionalArgument(self, arg):
         return "[" + arg.name + "]"
 
-    def visitPositionalArgument(self, arg):
-        return arg.name
-
     def visitHelpArgument(self, arg):
         return "[" + arg.name + "]"
+
+    def visitPositionalArgument(self, arg):
+        return arg.name
 
     def visitGroupArgument(self, arg):
         return "[" + "|".join([a.name for a in arg.arguments]) + "]"
@@ -116,10 +120,10 @@ class LengthVisitor(Visitor):
     def visitOptionalArgument(self, arg):
         return len(arg.name)
 
-    def visitPositionalArgument(self, arg):
+    def visitHelpArgument(self, arg):
         return len(arg.name)
 
-    def visitHelpArgument(self, arg):
+    def visitPositionalArgument(self, arg):
         return len(arg.name)
 
     def visitGroupArgument(self, arg):
@@ -140,10 +144,10 @@ class ListVisitor(Visitor):
     def visitOptionalArgument(self, arg):
         return arg.name.ljust(self.offset + self.space) + arg.message
 
-    def visitPositionalArgument(self, arg):
+    def visitHelpArgument(self, arg):
         return arg.name.ljust(self.offset + self.space) + arg.message
 
-    def visitHelpArgument(self, arg):
+    def visitPositionalArgument(self, arg):
         return arg.name.ljust(self.offset + self.space) + arg.message
 
     def visitGroupArgument(self, arg):
@@ -160,19 +164,44 @@ class ParseVisitor(Visitor):
         self.namespace = {}
 
     def visitArguments(self, args):
-        pass
+        for arg in args.values():
+            arg.accept(self)
+        if self.expression:
+            raise IllegalArgException(" ".join(self.expression))
 
     def visitOptionalArgument(self, arg):
-        pass
-
-    def visitPositionalArgument(self, arg):
-        pass
+        for index, e in enumerate(self.expression):
+            names = arg.name.split(',')
+            if e in names:
+                for n in names:
+                    self.namespace[n.strip('-')] = True
+                self.expression.pop(index)
+                return
 
     def visitHelpArgument(self, arg):
-        pass
+        for e in self.expression:
+            if e in arg.name.split(','):
+                raise HelpException()
+
+    def visitPositionalArgument(self, arg):
+        for index, e in enumerate(self.expression):
+            if not e.startswith('-'):
+                self.namespace[arg.name] = e
+                self.expression.pop(index)
+                return
+        raise NotEnoughArgException(" ".join(self.expression))
 
     def visitGroupArgument(self, arg):
-        pass
+        conflict = None
+        for a in arg.arguments:
+            for index, e in enumerate(self.expression):
+                if e == a.name:
+                    if conflict:
+                        raise InCompatibleArgException(conflict + " " + a.name)
+                    else:
+                        conflict = e
+                        self.namespace[a.name.strip('-')] = True
+                        self.expression.pop(index)
 
 
 class NameSpace(dict):
@@ -239,14 +268,18 @@ class SargParser(object):
 
     def parse_arg(self, expression=(sys.argv)[1:]):
         try:
-            return NameSpace(self.parse(expression))
+            namespace = NameSpace(self.parse(expression))
+            return namespace
+        except HelpException:
+            self.print_help()
+            sys.exit(0)
         except SargException, e:
             print(self.get_usage(), file=sys.stderr)
             print(e, file=sys.stderr)
             self.handler.handle(e)
 
     def add_argument(self, name, message="", **kwargs):
-        if name == "h,--help":
+        if name == "-h,--help" or name in ["-h", "--help"]:
             argument = HelpArgument(name, message, **kwargs)
         elif name.startswith("-"):
             argument = OptionalArgument(name, message, **kwargs)
@@ -264,23 +297,6 @@ class SargParser(object):
         print(self.get_arguments_list())
 
     def parse(self, expression):
-        def parse_rest(positional_arguments, optional_arguments, expression, namespace):
-            if len(expression) == 0 and len(positional_arguments) == 0:
-                return namespace
-            elif len(expression) == 0 and len(positional_arguments) > 0:
-                raise NotEnoughArgException()
-            else:
-                for argument in optional_arguments:
-                    if argument(expression[0], self, namespace):
-                        return parse_rest(positional_arguments, [a for a in optional_arguments if a != argument],
-                                          expression[1:], namespace)
-                if len(positional_arguments) == 0:
-                    raise IllegalArgException(expression[0])
-                elif positional_arguments[0](expression[0], self, namespace):
-                    return parse_rest(positional_arguments[1:], optional_arguments, expression[1:], namespace)
-                else:
-                    raise IllegalArgException(expression[0])
-
         self.parse_visitor.init(expression)
         self.parse_visitor.visitArguments(self.arguments)
         return self.parse_visitor.namespace

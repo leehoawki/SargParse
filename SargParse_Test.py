@@ -73,8 +73,16 @@ class SargParse_Test(unittest.TestCase):
     def test_illegal_exception(self):
         e = False
         try:
-            namespace = s.parse_arg(['-a'])
+            namespace = s.parse_arg(['-a', 'exp'])
         except SargParse.IllegalArgException, e:
+            e = True
+        assert e
+
+    def test_conflict_exception(self):
+        e = False
+        try:
+            namespace = a.parse_arg(['-a', '-b', 'exp'])
+        except SargParse.InCompatibleArgException, e:
             e = True
         assert e
 
